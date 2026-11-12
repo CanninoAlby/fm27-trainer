@@ -164,6 +164,9 @@ pub const BUILDS: &[Build] = &[
     // gelijk, alleen de vaste plekken liggen anders. Niet door dit project live getest; aanpassen staat
     // aan omdat elke keten en lijst vóór het schrijven op dezelfde manier gecontroleerd wordt als op Steam.
     Build { id: "PE-6AE563A1-175DA000", label: "Game Pass 0.9.2409.0 Windows", writes_tested: true, current_date: 0x56257C8, staff: 0x5683E08, clubs: 0x5683F78 },
+    // Steam update 27.0.0 (10 nov 2026), SizeOfImage 0x17CB9000 en linktijd 0x6AE8B5A4;
+    // live getest (12 nov 2026, Charlton Athletic-save): club, selectie, datum, kalender, transfers
+    Build { id: "PE-6AE8B5A4-17CB9000", label: "Steam 27.0.0 Windows", writes_tested: true, current_date: 0x57CA3B8, staff: 0x5820858, clubs: 0x58209C8 },
 ];
 
 /// Aanpassen toestaan op een build die (nog) niet live getest is; de gebruiker zet dit zelf aan.
@@ -867,9 +870,7 @@ fn week_ok(rec: u64) -> bool {
     }
     let Some(b) = mem::read_bytes(rec + WEEK_DAYS, 56) else { return false };
     let words: Vec<u16> = b.chunks_exact(2).map(|x| u16::from_le_bytes([x[0], x[1]])).collect();
-    if words.chunks_exact(4).any(|d| d[0] > 0xFF) {
-        return false;
-    }
+    // d[0] is een status/vlag; nieuwere FM-updates gebruiken ook hogere vlaggen (bijv. 0xC500, 0xC600)
     let codes: Vec<u16> = words.chunks_exact(4).flat_map(|d| d[1..].to_vec()).collect();
     let known = codes.iter().filter(|c| known_code(**c)).count();
     // een echte week heeft altijd rust/herstel, wedstrijden of trainingen (codes boven 0)
